@@ -2,144 +2,99 @@
 
 Sistema automatizado de asignación de leads basado en competencias, con Quality Gates y lógica de matching flexible.
 
-## 📊 Diagrama BPMN del Proceso
+## 📊 Diagrama (estilo BPMN) del Proceso
+
 ```mermaid
-graph TB
-    Start([Lead Recibido]) --> Intake[Ingesta de Datos]
-    
-    Intake --> QG1{Quality Gate<br/>Campos Obligatorios<br/>Completos?}
-    
-    QG1 -->|No| Reject1[Rechazar Lead]
-    Reject1 --> NotifySource[Notificar Fuente<br/>Datos Faltantes]
-    NotifySource --> End1([Fin - Lead Rechazado])
-    
-    QG1 -->|Sí| Validate[Validación Estructural<br/>y Semántica]
-    
-    Validate --> QG2{Datos Válidos<br/>y Coherentes?}
-    
-    QG2 -->|No| ManualQ[Cola de Revisión Manual]
-    ManualQ --> HumanReview[Revisión Humana]
-    HumanReview --> QG2B{¿Datos Corregidos?}
-    QG2B -->|No| End2([Fin - Lead Descartado])
-    QG2B -->|Sí| Normalize
-    
-    QG2 -->|Sí| Normalize[Normalización<br/>y Estandarización]
-    
-    Normalize --> Enrich[Enriquecimiento<br/>Datos Externos]
-    
-    Enrich --> QualityScore[Calcular<br/>Quality Score]
-    
-    QualityScore --> QG3{Quality Score<br/>>= 70%?}
-    
-    QG3 -->|No| LowQuality[Marcar como<br/>Baja Calidad]
-    LowQuality --> Classify
-    
-    QG3 -->|Sí| Classify[Clasificación de Lead]
-    
-    Classify --> DetermineType[Determinar Tipo:<br/>Premium/Estándar/Baja Cal.]
-    
-    DetermineType --> ImpactMatrix[Matriz Impacto-Urgencia]
-    
-    ImpactMatrix --> AssignPriority[Asignar Prioridad<br/>P1/P2/P3/P4]
-    
-    AssignPriority --> CalcReq[Calcular Requerimientos<br/>de Competencias]
-    
-    CalcReq --> QueryConsultants[Consultar Disponibilidad<br/>de Consultores]
-    
-    QueryConsultants --> FilterTeams{Filtrar por<br/>Equipos Permitidos}
-    
-    FilterTeams --> MatchEngine[Motor de Matching<br/>Calcular Scores]
-    
-    MatchEngine --> CheckMatch{¿Existe Match<br/>Score >= Threshold?}
-    
-    CheckMatch -->|No| Fallback{Prioridad<br/>= P1?}
-    
-    Fallback -->|Sí| Escalate[Escalar a Manager<br/>Asignación Manual]
-    Escalate --> ManualAssign[Asignación Manual]
-    ManualAssign --> RegisterCRM
-    
-    Fallback -->|No| WaitQueue[Añadir a Cola<br/>de Espera]
-    WaitQueue --> CheckAvail{Revisar cada 5 min<br/>¿Consultor Disponible?}
-    CheckAvail -->|No - Timeout| EscalateTimeout[Escalar por<br/>Timeout SLA]
-    EscalateTimeout --> Escalate
-    CheckAvail -->|Sí| MatchEngine
-    
-    CheckMatch -->|Sí| ValidateCapacity{Consultor tiene<br/>Capacidad?}
-    
-    ValidateCapacity -->|No pero P1| OverrideCapacity[Override Capacidad<br/>por Prioridad Crítica]
-    OverrideCapacity --> Assign
-    
-    ValidateCapacity -->|No y No-P1| NextBestMatch[Siguiente Mejor<br/>Match]
-    NextBestMatch --> CheckMatch
-    
-    ValidateCapacity -->|Sí| Assign[Asignar Lead<br/>a Consultor]
-    
-    Assign --> RegisterCRM[Registrar en CRM]
-    
-    RegisterCRM --> NotifyConsultant[Notificar<br/>Consultor]
-    
-    NotifyConsultant --> StartSLA[Iniciar<br/>Tracking SLA]
-    
-    StartSLA --> UpdateMetrics[Actualizar<br/>Métricas]
-    
-    UpdateMetrics --> LogHistory[Registrar en<br/>Historial]
-    
-    LogHistory --> MonitorLoop{Monitoreo<br/>Continuo}
-    
-    MonitorLoop --> CheckSLA[Verificar<br/>Cumplimiento SLA]
-    
-    CheckSLA --> CheckStatus{Lead<br/>Atendido?}
-    
-    CheckStatus -->|No - SLA Breach| AlertSLA[Alerta<br/>Incumplimiento SLA]
-    AlertSLA --> MonitorLoop
-    
-    CheckStatus -->|No - Dentro SLA| MonitorLoop
-    
-    CheckStatus -->|Sí| RecordOutcome[Registrar Resultado<br/>Conversión/Descarte]
-    
-    RecordOutcome --> UpdateCompetency[Actualizar Histórico<br/>Performance Consultor]
-    
-    UpdateCompetency --> FinalMetrics[Actualizar<br/>Métricas Finales]
-    
-    FinalMetrics --> End3([Fin - Lead Procesado])
-    
-    style Start fill:#e1f5e1
-    style End1 fill:#ffe1e1
-    style End2 fill:#ffe1e1
-    style End3 fill:#e1f5e1
-    style QG1 fill:#fff4e1
-    style QG2 fill:#fff4e1
-    style QG3 fill:#fff4e1
-    style CheckMatch fill:#e1f0ff
-    style Fallback fill:#ffe1f0
-    style ValidateCapacity fill:#e1f0ff
-    style Assign fill:#d4edda
-    style Escalate fill:#f8d7da
-    style WaitQueue fill:#fff3cd
-```
+flowchart TB
+  Start([Lead Recibido]) --> Intake[Ingesta de Datos]
 
-## 🎯 Características Principales
+  Intake --> QG1{"Quality Gate<br/>Campos obligatorios<br/>¿completos?"}
 
-- **Quality Gates**: 3 niveles de validación de datos
-- **Matching Inteligente**: Basado en competencias (escala 1-5)
-- **Priorización**: Matriz Impacto-Urgencia (P1-P4)
-- **Fallbacks Robustos**: Escalación y colas de espera
-- **Monitoreo**: Tracking SLA en tiempo real
+  QG1 -->|No| Reject1[Rechazar lead]
+  Reject1 --> NotifySource["Notificar fuente<br/>Datos faltantes"]
+  NotifySource --> End1([Fin · Lead rechazado])
 
-## 🔧 Componentes del Sistema
+  QG1 -->|Sí| Validate["Validación estructural<br/>y semántica"]
+  Validate --> QG2{"¿Datos válidos<br/>y coherentes?"}
 
-1. **Ingesta y Quality Gate**: Validación y enriquecimiento de datos
-2. **Clasificación**: Determinación de tipo y prioridad
-3. **Motor de Matching**: Asignación basada en competencias
-4. **Monitoreo**: Métricas y seguimiento continuo
+  QG2 -->|No| ManualQ[Cola de revisión manual]
+  ManualQ --> HumanReview[Revisión humana]
+  HumanReview --> QG2B{"¿Datos corregidos?"}
+  QG2B -->|No| End2([Fin · Lead descartado])
+  QG2B -->|Sí| Normalize
 
-## 📈 Métricas Clave
+  QG2 -->|Sí| Normalize["Normalización<br/>y estandarización"]
+  Normalize --> Enrich["Enriquecimiento<br/>datos externos"]
+  Enrich --> QualityScore["Calcular<br/>Quality Score"]
 
-- Tiempo medio de asignación: <5 min
-- Tasa de primer match exitoso: >90%
-- Cumplimiento SLA P1: 100%
-- Quality Score promedio: >85%
+  QualityScore --> QG3{"Quality Score<br/>≥ 70%?"}
 
----
+  QG3 -->|No| LowQuality["Marcar como<br/>baja calidad"]
+  LowQuality --> Classify
 
-**Caso de Estudio**: Associate, Efficiency & Process Automation
+  QG3 -->|Sí| Classify[Clasificación de lead]
+  Classify --> DetermineType["Determinar tipo:<br/>Premium/Estándar/Baja cal."]
+  DetermineType --> ImpactMatrix[Matriz impacto-urgencia]
+  ImpactMatrix --> AssignPriority["Asignar prioridad<br/>P1/P2/P3/P4"]
+  AssignPriority --> CalcReq["Calcular requerimientos<br/>de competencias"]
+  CalcReq --> QueryConsultants["Consultar disponibilidad<br/>de consultores"]
+
+  QueryConsultants --> FilterTeams{"Filtrar por<br/>equipos permitidos"}
+  FilterTeams --> MatchEngine["Motor de matching<br/>calcular scores"]
+  MatchEngine --> CheckMatch{"¿Existe match<br/>score ≥ umbral?"}
+
+  CheckMatch -->|No| Fallback{"¿Prioridad = P1?"}
+  Fallback -->|Sí| Escalate["Escalar a manager<br/>asignación manual"]
+  Escalate --> ManualAssign[Asignación manual]
+  ManualAssign --> RegisterCRM
+
+  Fallback -->|No| WaitQueue["Añadir a cola<br/>de espera"]
+  WaitQueue --> CheckAvail{"Revisar cada 5 min<br/>¿consultor disponible?"}
+  CheckAvail -->|No · Timeout| EscalateTimeout["Escalar por<br/>timeout SLA"]
+  EscalateTimeout --> Escalate
+  CheckAvail -->|Sí| MatchEngine
+
+  CheckMatch -->|Sí| ValidateCapacity{"¿Consultor tiene<br/>capacidad?"}
+  ValidateCapacity -->|No · P1| OverrideCapacity["Override capacidad<br/>por prioridad crítica"]
+  OverrideCapacity --> Assign
+
+  ValidateCapacity -->|No · no-P1| NextBestMatch["Siguiente mejor<br/>match"]
+  NextBestMatch --> CheckMatch
+
+  ValidateCapacity -->|Sí| Assign["Asignar lead<br/>a consultor"]
+
+  Assign --> RegisterCRM[Registrar en CRM]
+  RegisterCRM --> NotifyConsultant["Notificar<br/>consultor"]
+  NotifyConsultant --> StartSLA["Iniciar tracking<br/>SLA"]
+
+  StartSLA --> UpdateMetrics["Actualizar<br/>métricas"]
+  UpdateMetrics --> LogHistory["Registrar en<br/>historial"]
+
+  LogHistory --> MonitorLoop{"Monitoreo<br/>continuo"}
+  MonitorLoop --> CheckSLA["Verificar<br/>cumplimiento SLA"]
+  CheckSLA --> CheckStatus{"¿Lead atendido?"}
+
+  CheckStatus -->|No · SLA breach| AlertSLA["Alerta<br/>incumplimiento SLA"]
+  AlertSLA --> MonitorLoop
+
+  CheckStatus -->|No · Dentro SLA| MonitorLoop
+
+  CheckStatus -->|Sí| RecordOutcome["Registrar resultado<br/>conversión/descarte"]
+  RecordOutcome --> UpdateCompetency["Actualizar histórico<br/>performance consultor"]
+  UpdateCompetency --> FinalMetrics["Actualizar<br/>métricas finales"]
+  FinalMetrics --> End3([Fin · Lead procesado])
+
+  %% Styles
+  style Start fill:#e1f5e1
+  style End1 fill:#ffe1e1
+  style End2 fill:#ffe1e1
+  style End3 fill:#e1f5e1
+  style QG1 fill:#fff4e1
+  style QG2 fill:#fff4e1
+  style QG3 fill:#fff4e1
+  style CheckMatch fill:#e1f0ff
+  style Fallback fill:#ffe1f0
+  style ValidateCapacity fill:#e1f0ff
+  style Assign fill:#d4edda
+  style Escalate fill:#f8d7da
+  style WaitQueue fill:#fff3cd
